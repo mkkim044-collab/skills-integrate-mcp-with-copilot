@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const activitiesList = document.getElementById("activities-list");
+  const searchInput = document.getElementById("activity-search");
+  const categoryFilter = document.getElementById("category-filter");
+  const sortSelect = document.getElementById("sort-activities");
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const signupContainer = document.getElementById("signup-container");
@@ -17,6 +20,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetFormButton = document.getElementById("reset-form-button");
   let isTeacher = false;
   let showAvailableOnly = false;
+  let activitiesData = {};
+
+  function populateCategories() {
+    const categories = [...new Set(Object.values(activitiesData).map((details) => details.category))].sort();
+    categoryFilter.innerHTML = '<option value="">All categories</option>';
+    categories.forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      categoryFilter.appendChild(option);
+    });
+  }
 
   function renderAuthState(username = "") {
     signupContainer.classList.toggle("hidden", !isTeacher);
@@ -44,24 +59,43 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
+      const selectedCategory = categoryFilter.value;
       const response = await fetch("/activities");
-      const activities = await response.json();
+      activitiesData = await response.json();
+      populateCategories();
+      categoryFilter.value = selectedCategory;
 
       // Clear loading message
       activitiesList.innerHTML = "";
       activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const filteredActivities = Object.entries(activitiesData)
+        .filter(([name, details]) => {
+          const searchableText = `${name} ${details.description} ${details.schedule}`.toLowerCase();
+          const spotsLeft = details.max_participants - details.participants.length;
+          return (!searchTerm || searchableText.includes(searchTerm))
+            && (!selectedCategory || details.category === selectedCategory)
+            && (!showAvailableOnly || spotsLeft > 0);
+        })
+        .sort(([nameA, detailsA], [nameB, detailsB]) => {
+          if (sortSelect.value === "availability") {
+            return (detailsB.max_participants - detailsB.participants.length)
+              - (detailsA.max_participants - detailsA.participants.length);
+          }
+          if (sortSelect.value === "schedule") {
+            return detailsA.schedule.localeCompare(detailsB.schedule);
+          }
+          return nameA.localeCompare(nameB);
+        });
+
       // Populate activities list
-      Object.entries(activities).forEach(([name, details]) => {
+      filteredActivities.forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
 
         const spotsLeft =
           details.max_participants - details.participants.length;
-
-        if (showAvailableOnly && spotsLeft <= 0) {
-          return;
-        }
 
         // Create participants HTML with delete icons instead of bullet points
         const participantsHTML =
@@ -81,6 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         activityCard.innerHTML = `
           <h4>${name}</h4>
+          <p class="activity-category">${details.category}</p>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
@@ -286,6 +321,11 @@ document.addEventListener("DOMContentLoaded", () => {
       authPanel.classList.add("hidden");
       authButton.setAttribute("aria-expanded", "false");
     }
+  });
+
+  [searchInput, categoryFilter, sortSelect].forEach((control) => {
+    control.addEventListener("input", fetchActivities);
+    control.addEventListener("change", fetchActivities);
   });
 
   // Initialize app
