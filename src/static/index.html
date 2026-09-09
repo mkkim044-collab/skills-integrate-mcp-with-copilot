@@ -13,22 +13,49 @@
           <h1>Mergington High School</h1>
           <h2>Extracurricular Activities</h2>
         </div>
-        <div class="tools-menu">
-          <button
-            id="tools-button"
-            class="tools-button"
-            type="button"
-            aria-label="Open additional tools"
-            aria-expanded="false"
-            aria-controls="tools-panel"
-            title="Additional tools"
-          >
-            🛠️
-          </button>
-          <div id="tools-panel" class="tools-panel hidden" role="menu">
-            <button id="refresh-button" type="button" role="menuitem">↻ Refresh activities</button>
-            <button id="available-only-button" type="button" role="menuitem">✓ Show available only</button>
-            <button id="reset-form-button" type="button" role="menuitem">× Reset sign-up form</button>
+        <div class="header-actions">
+          <div class="auth-menu">
+            <button
+              id="auth-button"
+              class="tools-button"
+              type="button"
+              aria-label="Open teacher login"
+              aria-expanded="false"
+              aria-controls="auth-panel"
+              title="Teacher login"
+            >
+              👤
+            </button>
+            <div id="auth-panel" class="auth-panel hidden">
+              <p id="auth-status">Teacher login</p>
+              <form id="login-form">
+                <label for="username">Username</label>
+                <input id="username" name="username" autocomplete="username" required />
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required />
+                <button type="submit">Log in</button>
+              </form>
+              <button id="logout-button" class="secondary-button hidden" type="button">Log out</button>
+              <p id="auth-message" class="auth-message hidden"></p>
+            </div>
+          </div>
+          <div class="tools-menu">
+            <button
+              id="tools-button"
+              class="tools-button"
+              type="button"
+              aria-label="Open additional tools"
+              aria-expanded="false"
+              aria-controls="tools-panel"
+              title="Additional tools"
+            >
+              🛠️
+            </button>
+            <div id="tools-panel" class="tools-panel hidden" role="menu">
+              <button id="refresh-button" type="button" role="menuitem">↻ Refresh activities</button>
+              <button id="available-only-button" type="button" role="menuitem">✓ Show available only</button>
+              <button id="reset-form-button" type="button" role="menuitem">× Reset sign-up form</button>
+            </div>
           </div>
         </div>
       </div>
@@ -43,7 +70,7 @@
         </div>
       </section>
 
-      <section id="signup-container">
+      <section id="signup-container" class="hidden">
         <h3>Sign Up for an Activity</h3>
         <form id="signup-form">
           <div class="form-group">

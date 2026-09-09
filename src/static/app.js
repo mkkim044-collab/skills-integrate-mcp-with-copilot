@@ -2,13 +2,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitiesList = document.getElementById("activities-list");
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
+  const signupContainer = document.getElementById("signup-container");
   const messageDiv = document.getElementById("message");
+  const authButton = document.getElementById("auth-button");
+  const authPanel = document.getElementById("auth-panel");
+  const loginForm = document.getElementById("login-form");
+  const logoutButton = document.getElementById("logout-button");
+  const authStatus = document.getElementById("auth-status");
+  const authMessage = document.getElementById("auth-message");
   const toolsButton = document.getElementById("tools-button");
   const toolsPanel = document.getElementById("tools-panel");
   const refreshButton = document.getElementById("refresh-button");
   const availableOnlyButton = document.getElementById("available-only-button");
   const resetFormButton = document.getElementById("reset-form-button");
+  let isTeacher = false;
   let showAvailableOnly = false;
+
+  function renderAuthState(username = "") {
+    signupContainer.classList.toggle("hidden", !isTeacher);
+    loginForm.classList.toggle("hidden", isTeacher);
+    logoutButton.classList.toggle("hidden", !isTeacher);
+    authStatus.textContent = isTeacher ? `Logged in as ${username}` : "Teacher login";
+
+    document.querySelectorAll(".delete-btn").forEach((button) => {
+      button.classList.toggle("hidden", !isTeacher);
+    });
+  }
+
+  async function fetchAuthState() {
+    const response = await fetch("/auth/me");
+    const auth = await response.json();
+    isTeacher = auth.authenticated;
+    renderAuthState(auth.username || "");
+  }
+
+  function showAuthMessage(message, isError = false) {
+    authMessage.textContent = message;
+    authMessage.className = `auth-message ${isError ? "error" : "success"}`;
+  }
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -41,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${details.participants
                   .map(
                     (email) =>
-                      `<li><span class="participant-email">${email}</span><button class="delete-btn" data-activity="${name}" data-email="${email}">❌</button></li>`
+                      `<li><span class="participant-email">${email}</span><button class="delete-btn ${isTeacher ? "" : "hidden"}" data-activity="${name}" data-email="${email}" aria-label="Unregister ${email}">❌</button></li>`
                   )
                   .join("")}
               </ul>
@@ -81,6 +112,47 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching activities:", error);
     }
   }
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(loginForm);
+
+    try {
+      const response = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.get("username"),
+          password: formData.get("password"),
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        showAuthMessage(result.detail || "Unable to log in", true);
+        return;
+      }
+
+      isTeacher = true;
+      loginForm.reset();
+      showAuthMessage("Teacher access enabled");
+      renderAuthState(result.username);
+      fetchActivities();
+    } catch (error) {
+      showAuthMessage("Failed to log in. Please try again.", true);
+      console.error("Error logging in:", error);
+    }
+  });
+
+  logoutButton.addEventListener("click", async () => {
+    await fetch("/auth/logout", { method: "POST" });
+    isTeacher = false;
+    renderAuthState();
+    showAuthMessage("Logged out");
+    authPanel.classList.add("hidden");
+    authButton.setAttribute("aria-expanded", "false");
+    fetchActivities();
+  });
 
   // Handle unregister functionality
   async function handleUnregister(event) {
@@ -176,6 +248,12 @@ document.addEventListener("DOMContentLoaded", () => {
     toolsButton.setAttribute("aria-expanded", String(!isOpen));
   });
 
+  authButton.addEventListener("click", () => {
+    const isOpen = !authPanel.classList.contains("hidden");
+    authPanel.classList.toggle("hidden", isOpen);
+    authButton.setAttribute("aria-expanded", String(!isOpen));
+  });
+
   refreshButton.addEventListener("click", () => {
     toolsPanel.classList.add("hidden");
     toolsButton.setAttribute("aria-expanded", "false");
@@ -204,8 +282,15 @@ document.addEventListener("DOMContentLoaded", () => {
       toolsPanel.classList.add("hidden");
       toolsButton.setAttribute("aria-expanded", "false");
     }
+    if (!event.target.closest(".auth-menu")) {
+      authPanel.classList.add("hidden");
+      authButton.setAttribute("aria-expanded", "false");
+    }
   });
 
   // Initialize app
-  fetchActivities();
+  fetchAuthState().then(fetchActivities).catch((error) => {
+    console.error("Error checking authentication:", error);
+    fetchActivities();
+  });
 });
