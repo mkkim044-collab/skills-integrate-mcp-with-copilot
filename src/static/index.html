@@ -8,8 +8,30 @@
   </head>
   <body>
     <header>
-      <h1>Mergington High School</h1>
-      <h2>Extracurricular Activities</h2>
+      <div class="header-content">
+        <div>
+          <h1>Mergington High School</h1>
+          <h2>Extracurricular Activities</h2>
+        </div>
+        <div class="tools-menu">
+          <button
+            id="tools-button"
+            class="tools-button"
+            type="button"
+            aria-label="Open additional tools"
+            aria-expanded="false"
+            aria-controls="tools-panel"
+            title="Additional tools"
+          >
+            🛠️
+          </button>
+          <div id="tools-panel" class="tools-panel hidden" role="menu">
+            <button id="refresh-button" type="button" role="menuitem">↻ Refresh activities</button>
+            <button id="available-only-button" type="button" role="menuitem">✓ Show available only</button>
+            <button id="reset-form-button" type="button" role="menuitem">× Reset sign-up form</button>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main>

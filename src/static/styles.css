@@ -16,12 +16,73 @@ body {
 }
 
 header {
-  text-align: center;
   padding: 20px 0;
   margin-bottom: 30px;
   background-color: #1a237e;
   color: white;
   border-radius: 5px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+}
+
+.header-content > div:first-child {
+  flex: 1;
+  text-align: center;
+}
+
+.tools-menu {
+  position: relative;
+}
+
+.tools-button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  background-color: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.tools-button:hover,
+.tools-button:focus-visible {
+  background-color: rgba(255, 255, 255, 0.26);
+}
+
+.tools-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 2;
+  display: grid;
+  min-width: 220px;
+  padding: 6px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.tools-panel button {
+  width: 100%;
+  padding: 9px 10px;
+  color: #333;
+  text-align: left;
+  font-size: 14px;
+  background: transparent;
+  border-radius: 3px;
+}
+
+.tools-panel button:hover,
+.tools-panel button:focus-visible {
+  color: #1a237e;
+  background-color: #eef0ff;
 }
 
 header h1 {

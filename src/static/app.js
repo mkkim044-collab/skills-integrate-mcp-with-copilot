@@ -3,6 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const toolsButton = document.getElementById("tools-button");
+  const toolsPanel = document.getElementById("tools-panel");
+  const refreshButton = document.getElementById("refresh-button");
+  const availableOnlyButton = document.getElementById("available-only-button");
+  const resetFormButton = document.getElementById("reset-form-button");
+  let showAvailableOnly = false;
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -12,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -20,6 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft =
           details.max_participants - details.participants.length;
+
+        if (showAvailableOnly && spotsLeft <= 0) {
+          return;
+        }
 
         // Create participants HTML with delete icons instead of bullet points
         const participantsHTML =
@@ -55,6 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
+
+      if (!activitiesList.children.length) {
+        activitiesList.innerHTML = "<p><em>No activities have open spots.</em></p>";
+      }
 
       // Add event listeners to delete buttons
       document.querySelectorAll(".delete-btn").forEach((button) => {
@@ -152,6 +167,42 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  toolsButton.addEventListener("click", () => {
+    const isOpen = !toolsPanel.classList.contains("hidden");
+    toolsPanel.classList.toggle("hidden", isOpen);
+    toolsButton.setAttribute("aria-expanded", String(!isOpen));
+  });
+
+  refreshButton.addEventListener("click", () => {
+    toolsPanel.classList.add("hidden");
+    toolsButton.setAttribute("aria-expanded", "false");
+    fetchActivities();
+  });
+
+  availableOnlyButton.addEventListener("click", () => {
+    showAvailableOnly = !showAvailableOnly;
+    availableOnlyButton.textContent = showAvailableOnly
+      ? "✓ Show all activities"
+      : "✓ Show available only";
+    toolsPanel.classList.add("hidden");
+    toolsButton.setAttribute("aria-expanded", "false");
+    fetchActivities();
+  });
+
+  resetFormButton.addEventListener("click", () => {
+    signupForm.reset();
+    messageDiv.className = "hidden";
+    toolsPanel.classList.add("hidden");
+    toolsButton.setAttribute("aria-expanded", "false");
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".tools-menu")) {
+      toolsPanel.classList.add("hidden");
+      toolsButton.setAttribute("aria-expanded", "false");
     }
   });
 
